@@ -243,7 +243,6 @@ class Bert2Bert(FairseqEncoderDecoderModel):
 
         # print("SRC Tokens: \n", src_tokens[0][:100])
         # print("Type IDS: \n", token_type_ids)
-        src_tokens.to(device)
         bert_encoder_out, _, predicted_lengths = self.encoder(
             input_ids=src_tokens, 
             token_type_ids=token_type_ids, 
