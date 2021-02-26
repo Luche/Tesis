@@ -430,7 +430,6 @@ class BertEmbeddings(nn.Module):
 
         if position_ids is None:
             position_ids = self.position_ids[:, past_key_values_length : seq_length + past_key_values_length]
-        print(self.position_ids.device)
         if token_type_ids is None:
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=self.position_ids.device)
 
@@ -1273,7 +1272,7 @@ class BertModel(BertPreTrainedModel):
         if token_type_ids is None:
             token_type_ids = torch.zeros(input_shape, dtype=torch.long, device=device)
 
-        print(input_ids.device, token_type_ids.device, past_key_values_length.device)
+        token_type_ids = token_type_ids.to(device)
         # Calculate embedding
         embedding_output = self.embeddings(input_ids, token_type_ids, position_ids, past_key_values_length)
 
