@@ -89,8 +89,6 @@ class BertWordpieceDictionary(Dictionary):
         for i in tensor:
             if i != self.eos() and i != self.cls():
                 final_tensor.append(i)
-            else:
-                break
 
         sent = ' '.join(token_string(i) for i in final_tensor if i != self.eos() and i!= self.pad())
         return data_utils.process_bpe_symbol(sent, bpe_symbol)

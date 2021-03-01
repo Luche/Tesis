@@ -11,6 +11,8 @@ import torch
 import sys
 
 from fairseq import utils
+from fairseq.strategies import STRATEGY_REGISTRY
+
 
 
 def get_preprocessing_parser(default_task='translation'):
@@ -400,6 +402,13 @@ def add_generation_args(parser):
     group = parser.add_argument_group('Generation')
     add_common_eval_args(group)
     # fmt: off
+    group.add_argument('--decoding-strategy', default='left_to_right', choices=STRATEGY_REGISTRY.keys())
+    group.add_argument('--gold-target-len', action='store_true', help='use gold target length')
+    group.add_argument('--dehyphenate', action='store_true', help='turn hyphens into independent tokens')
+    parser.add_argument('--decoding-iterations', default=None, type=int, metavar='N', help='number of decoding iterations in mask-predict')
+    group.add_argument('--length-beam', default=5, type=int, metavar='N',
+                       help='length beam size')
+
     group.add_argument('--beam', default=5, type=int, metavar='N',
                        help='beam size')
     group.add_argument('--nbest', default=1, type=int, metavar='N',

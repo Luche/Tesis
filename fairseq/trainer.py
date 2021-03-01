@@ -178,6 +178,7 @@ class Trainer(object):
 
             # only reload optimizer and lr_scheduler if they match
             last_optim = self._optim_history[-1]
+
             assert last_optim['criterion_name'] == self.criterion.__class__.__name__, \
                 'Criterion does not match; please reset the optimizer (--reset-optimizer).'
             assert last_optim['optimizer_name'] == self.optimizer.__class__.__name__, \
