@@ -1,5 +1,5 @@
 python train.py '../liputan6/data_dir' \
-  --task bert_xymasked_wp_seq2seq -s de -t en --fp16 \
+  --task bert_xymasked_wp_seq2seq -s de -t en --memory-efficient-fp16 \
   -a bert2bert --train-from-scratch --no-noisy-source --save-interval-updates 10000 \
   --optimizer adam --adam-betas '(0.9, 0.999)' --clip-norm 0.0 \
   --lr-scheduler inverse_sqrt --warmup-updates 10000 --warmup-init-lr '1e-07' \
