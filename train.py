@@ -47,32 +47,6 @@ def main(args, init_distributed=False):
 
     # Build model and criterion
     model = task.build_model(args)
-    use_adapter_bert = getattr(args, 'use_adapter_bert', False)
-    finetune_whole_encoder = getattr(args, 'finetune_whole_encoder', False)
-    finetune_embeddings = getattr(args, 'finetune_embeddings', False)
-
-    if use_adapter_bert:
-        for name, param in model.encoder.named_parameters():
-            param.requires_grad = False
-            if finetune_whole_encoder:
-                param.requires_grad = True
-                continue
-            if finetune_embeddings:
-                if 'embedding' in name:
-                    param.requires_grad = True
-            if 'adapter' in name or 'embed_lengths' in name:
-                param.requires_grad = True
-        if hasattr(model, 'decoder'):
-            for name, param in model.decoder.named_parameters():
-                param.requires_grad = False
-                if finetune_whole_encoder:
-                    param.requires_grad = True
-                    continue
-                if finetune_embeddings:
-                    if 'embedding' in name:
-                        param.requires_grad = True
-                if 'encoder_attn' in name:
-                    param.requires_grad = True
 
     check_p = [n for n,p in model.named_parameters() if p.requires_grad]
     print("Trained parameters: {}".format(check_p))
@@ -112,17 +86,17 @@ def main(args, init_distributed=False):
         # train for one epoch
         train(args, trainer, task, epoch_itr)
 
-        if not args.disable_validation and epoch_itr.epoch % args.validate_interval == 0:
-            valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
-        else:
-            valid_losses = [None]
+        # if not args.disable_validation and epoch_itr.epoch % args.validate_interval == 0:
+        #     valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
+        # else:
+        #     valid_losses = [None]
 
         # only use first validation loss to update the learning rate
-        lr = trainer.lr_step(epoch_itr.epoch, valid_losses[0])
+        lr = trainer.lr_step(epoch_itr.epoch)
 
-        # save checkpoint
-        if epoch_itr.epoch % args.save_interval == 0:
-            checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
+        # # save checkpoint
+        # if epoch_itr.epoch % args.save_interval == 0:
+        #     checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
 
         if ':' in getattr(args, 'data', ''):
             # sharded data: get train iterator for next epoch
@@ -151,10 +125,10 @@ def train(args, trainer, task, epoch_itr):
     valid_subsets = args.valid_subset.split(',')
     max_update = args.max_update or math.inf
     for i, samples in enumerate(progress, start=epoch_itr.iterations_in_epoch):
-        # print('\nsrc: ', samples[0]['net_input']['src_tokens'][0])
-        # print('prev decoder out', samples[0]['net_input']['prev_output_tokens'][0])
-        # print('target', samples[0]['target'][0])
-        # print('origin_target', samples[0]['origin_target'][0])
+        # print('\n\nsrc: ', samples[0]['net_input']['src_tokens'][0])
+        # print('prev_output_tokens: ', samples[0]['net_input']['prev_output_tokens'][0])
+        # print('target: ', samples[0]['target'][0])
+        # print('origin_target: ', samples[0]['origin_target'][0])
         log_output = trainer.train_step(samples)
         if log_output is None:
             continue

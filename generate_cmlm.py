@@ -96,7 +96,6 @@ def main(args):
     ).next_epoch_itr(shuffle=False)
     
     results = []
-    # scorer = pybleu.PyBleuScorer()
     num_sentences = 0
     has_target = True
     timer = TimeMeter()
@@ -110,9 +109,7 @@ def main(args):
         for sample_id, src_tokens, target_tokens, hypos in translations:
             has_target = target_tokens is not None
             target_tokens = target_tokens.int().cpu() if has_target else None
-            # print("src_tokens: ", src_tokens)
-            # print("target_tokens: ", target_tokens)
-            # print("hypos: ", hypos)
+
             # Either retrieve the original sentences or regenerate them from tokens.
             if align_dict is not None:
                 src_str = task.dataset(args.gen_subset).src.get_original_text(sample_id)
@@ -128,6 +125,7 @@ def main(args):
 
             if not args.quiet:
                 print('S-{}\t{}'.format(sample_id, src_str))
+                    
                 if has_target:
                     print('T-{}\t{}'.format(sample_id, target_str))
                     hypo_tokens, hypo_str, alignment = utils.post_process_prediction(
@@ -162,9 +160,17 @@ def main(args):
 
         if has_target:
             print('Time = {}'.format(timer.elapsed_time))
-            ref, out = zip(*results)
-            print('| Generate {} with beam={}: BLEU4 = {:2.2f}, '.format(args.gen_subset, args.beam))
-
+            refs, outs = zip(*results)
+            print('| Generate {} with beam={}: , '.format(args.gen_subset, args.beam))
+            # Save files for scoring
+            print('Saving files...')
+            with open("ref.txt", "w") as f:
+                for ref in refs:
+                    f.write("{} \n".format(ref))
+            with open("out.txt", "w") as f:
+                for out in outs:
+                    f.write("{} \n".format(out))
+            print('Done saving files...')
 
 def dehyphenate(sent):
     return re.sub(r'(\S)-(\S)', r'\1 ##AT##-##AT## \2', sent).replace('##AT##', '@')
