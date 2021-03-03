@@ -156,6 +156,7 @@ def train(args, trainer, task, epoch_itr):
             and num_updates % args.save_interval_updates == 0
             and num_updates > 0
         ):
+            progress.print(stats, tag='train', step=stats['num_updates'])
             valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
             checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
 

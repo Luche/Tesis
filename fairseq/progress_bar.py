@@ -195,16 +195,13 @@ class simple_progress_bar(progress_bar):
     def log(self, stats, tag='', step=None):
         """Log intermediate stats according to log_interval."""
         self.stats = self._format_stats(stats)
-        if step % self.log_interval == 0:
-            with open("log-{}.txt".format(tag), "a+") as f:
-                f.write('{} | {}\n'.format(self.prefix, self._str_pipes(self._format_stats(self.stats))))
 
     def print(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
-        print('{} | {}'.format(self.prefix, postfix), flush=True)
         with open("log-{}.txt".format(tag), "a+") as f:
             f.write('{} | {}\n'.format(self.prefix, postfix))
+        print('{} | {}'.format(self.prefix, postfix), flush=True)
 
 
 class tqdm_progress_bar(progress_bar):
@@ -224,6 +221,8 @@ class tqdm_progress_bar(progress_bar):
     def print(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
+        with open("log-{}.txt".format(tag), "a+") as f:
+            f.write('{} | {}\n'.format(self.tqdm.desc, postfix))
         self.tqdm.write('{} | {}'.format(self.tqdm.desc, postfix))
 
 
