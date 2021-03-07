@@ -361,6 +361,8 @@ def add_checkpoint_args(parser):
                        help='don\'t save models or checkpoints')
     group.add_argument('--no-epoch-checkpoints', action='store_true',
                        help='only store last and best checkpoints')
+    group.add_argument('--save-to-drive', action='store_true',
+                       help='upload checkpoints to drive')
     # fmt: on
     return group
 

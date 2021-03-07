@@ -102,7 +102,8 @@ def main(args, init_distributed=False):
             # sharded data: get train iterator for next epoch
             epoch_itr = trainer.get_train_iterator(epoch_itr.epoch)
     train_meter.stop()
-    print('| done training in {:.1f} seconds'.format(train_meter.sum))
+    duration = train_meter.sum
+    print('\n| done training in {:.2f} hours'.format(duration/3600))
 
 
 def train(args, trainer, task, epoch_itr):

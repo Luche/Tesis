@@ -4,7 +4,7 @@
 # This source code is licensed under the license found in the LICENSE file in
 # the root directory of this source tree. An additional grant of patent rights
 # can be found in the PATENTS file in the same directory.
-
+import tempfile
 import argparse
 from collections import OrderedDict
 from typing import Union
@@ -20,6 +20,8 @@ from torch.serialization import default_restore_location
 
 from fairseq.models import FairseqEncoder, FairseqDecoder
 
+from pydrive.drive import GoogleDrive 
+from pydrive.auth import GoogleAuth 
 
 def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
     from fairseq import distributed_utils, meters
@@ -28,10 +30,11 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
         return
 
     write_timer = meters.StopwatchMeter()
+    upload_timer = meters.StopwatchMeter()
     write_timer.start()
 
     epoch = epoch_itr.epoch
-    end_of_epoch = epoch_itr.end_of_epoch() if not warmup_from_nmt else True
+    end_of_epoch = epoch_itr.end_of_epoch()
     updates = trainer.get_num_updates()
 
     checkpoint_conds = collections.OrderedDict()
@@ -64,10 +67,35 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
         trainer.save_checkpoint(checkpoints[0], extra_state)
         for cp in checkpoints[1:]:
             shutil.copyfile(checkpoints[0], cp)
-
+        
         write_timer.stop()
-        print('| saved checkpoint {} (epoch {} @ {} updates) (writing took {} seconds)'.format(
+        print('\n| saved checkpoint {} (epoch {} @ {} updates) (writing took {} seconds)'.format(
             checkpoints[0], epoch, updates, write_timer.sum))
+
+        # Only save & upload per 10k updates and best checkpoints
+        # Code to upload to GDrive here
+        if args.save_to_drive:
+            print('Uploading chechkpoints...')
+            gauth = GoogleAuth() 
+            
+            # Creates local webserver and auto 
+            # handles authentication. 
+            gauth.LoadCredentialsFile("mycreds.txt")
+            drive = GoogleDrive(gauth) 
+            
+            for cp in checkpoints:
+                # replace the value of this variable 
+                # with the absolute path of the directory 
+                path = os.path.abspath(cp)
+
+                checkpoint_folder = '1izR_l_BJbKrCaSeGN6gc7JTXGFXvQRCl'
+                f = drive.CreateFile({
+                    'title':'{}'.format(cp.split('/')[-1]), 
+                    'parents':[{'id': checkpoint_folder}]
+                    }) 
+                f.SetContentFile(path) 
+                f.Upload() 
+                f = None
 
     if not end_of_epoch and args.keep_interval_updates > 0:
         # remove old checkpoints; checkpoints are sorted in descending order

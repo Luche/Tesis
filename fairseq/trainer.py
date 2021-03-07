@@ -150,18 +150,18 @@ class Trainer(object):
 
             # load model parameters
             try:
-                if warmup_from_nmt:
-                    if use_adapter_bert:
-                        new_state = state['model'].copy()
-                        for key in state['model'].keys():
-                            if not key.startswith('decoder'):
-                                del new_state[key]
-                        self.get_model().load_state_dict(new_state, strict=False)
-                    else:
-                        self.get_model().load_state_dict(state['model'], strict=False)
-                else:
-                    self.get_model().load_state_dict(state['model'], strict=True)
-                # self.get_model().load_state_dict(state['model'], strict=True)
+                # if warmup_from_nmt:
+                #     if use_adapter_bert:
+                #         new_state = state['model'].copy()
+                #         for key in state['model'].keys():
+                #             if not key.startswith('decoder'):
+                #                 del new_state[key]
+                #         self.get_model().load_state_dict(new_state, strict=False)
+                #     else:
+                #         self.get_model().load_state_dict(state['model'], strict=False)
+                # else:
+                #     self.get_model().load_state_dict(state['model'], strict=True)
+                self.get_model().load_state_dict(state['model'], strict=True)
             except Exception:
                 raise Exception(
                     'Cannot load model parameters from checkpoint, '
