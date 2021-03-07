@@ -157,7 +157,7 @@ def train(args, trainer, task, epoch_itr):
             and num_updates % args.save_interval_updates == 0
             and num_updates > 0
         ):
-            progress.print(stats, tag='train', step=stats['num_updates'])
+            progress.prints(stats, tag='train', step=stats['num_updates'])
             valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
             checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
 
@@ -168,7 +168,7 @@ def train(args, trainer, task, epoch_itr):
     stats = get_training_stats(trainer)
     for k, meter in extra_meters.items():
         stats[k] = meter.avg
-    progress.print(stats, tag='train', step=stats['num_updates'])
+    progress.prints(stats, tag='train', step=stats['num_updates'])
 
     # reset training meters
     for k in [
@@ -249,7 +249,7 @@ def validate(args, trainer, task, epoch_itr, subsets):
         stats = get_valid_stats(trainer)
         for k, meter in extra_meters.items():
             stats[k] = meter.avg
-        progress.print(stats, tag=subset, step=trainer.get_num_updates())
+        progress.prints(stats, tag=subset, step=trainer.get_num_updates())
 
         valid_losses.append(stats['loss'].avg)
     return valid_losses

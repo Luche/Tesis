@@ -93,7 +93,7 @@ class progress_bar(object):
         """Log intermediate stats according to log_interval."""
         raise NotImplementedError
 
-    def print(self, stats, tag='', step=None):
+    def prints(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         raise NotImplementedError
 
@@ -135,7 +135,7 @@ class json_progress_bar(progress_bar):
         """Log intermediate stats according to log_interval."""
         self.stats = stats
 
-    def print(self, stats, tag='', step=None):
+    def prints(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         self.stats = stats
         if tag != '':
@@ -169,7 +169,7 @@ class noop_progress_bar(progress_bar):
         """Log intermediate stats according to log_interval."""
         pass
 
-    def print(self, stats, tag='', step=None):
+    def prints(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         pass
 
@@ -196,7 +196,7 @@ class simple_progress_bar(progress_bar):
         """Log intermediate stats according to log_interval."""
         self.stats = self._format_stats(stats)
 
-    def print(self, stats, tag='', step=None):
+    def prints(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
         with open("log-{}.txt".format(tag), "a+") as f:
@@ -218,7 +218,7 @@ class tqdm_progress_bar(progress_bar):
         """Log intermediate stats according to log_interval."""
         self.tqdm.set_postfix(self._format_stats(stats), refresh=False)
 
-    def print(self, stats, tag='', step=None):
+    def prints(self, stats, tag='', step=None):
         """Print end-of-epoch stats."""
         postfix = self._str_pipes(self._format_stats(stats))
         with open("log-{}.txt".format(tag), "a+") as f:
