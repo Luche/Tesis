@@ -7,4 +7,5 @@ python train.py '../liputan6/data_dir' \
   --criterion label_smoothed_length_cross_entropy --label-smoothing 0.1 \
   --weight-decay 0.01 --max-tokens 2000 --update-freq 16 --max-update 100000 \
   --left-pad-source False --adapter-dimension 512 --max-source-positions 512 --max-target-positions 512 \
-  --bert-model-name indolem/indobert-base-uncased --decoder-bert-model-name indolem/indobert-base-uncased
+  --bert-model-name indolem/indobert-base-uncased --decoder-bert-model-name indolem/indobert-base-uncased \
+  --save-dir /mnt/9d3e4e21-bdd9-4bca-b801-87c08124cc05/LUCKY/checkpoints

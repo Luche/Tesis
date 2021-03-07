@@ -20,9 +20,6 @@ from torch.serialization import default_restore_location
 
 from fairseq.models import FairseqEncoder, FairseqDecoder
 
-from pydrive.drive import GoogleDrive 
-from pydrive.auth import GoogleAuth 
-
 def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
     from fairseq import distributed_utils, meters
 
@@ -76,6 +73,8 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
         # Code to upload to GDrive here
         if args.save_to_drive:
             print('Uploading chechkpoints...')
+            from pydrive.drive import GoogleDrive 
+            from pydrive.auth import GoogleAuth 
             gauth = GoogleAuth() 
             
             # Creates local webserver and auto 
