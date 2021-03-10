@@ -165,6 +165,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             # from_scratch=args.train_from_scratch, 
             is_encoder=True,
             is_at=args.is_at,
+            add_pooling_layer=False,
             )
         print('Load model\'s decoder...')
         bertdecoder = BertDec.from_pretrained(
@@ -258,8 +259,8 @@ class Bert2Bert(FairseqEncoderDecoderModel):
         #     'predicted_lengths': predicted_lengths,
         # }
 
-        token_type_ids_decoder = self.create_token_type_ids(origin_target)
-        # token_type_ids_decoder = torch.zeros_like(prev_output_tokens)
+        # token_type_ids_decoder = self.create_token_type_ids(origin_target)
+        token_type_ids_decoder = torch.zeros_like(prev_output_tokens)
 
         # print("PREV Tokens: \n", prev_output_tokens)
         # print("ORIGIN Tokens: \n", origin_target)
@@ -267,9 +268,9 @@ class Bert2Bert(FairseqEncoderDecoderModel):
 
         decoder_out, _ = self.decoder(
             input_ids=prev_output_tokens,
+            token_type_ids=token_type_ids_decoder, 
             encoder_hidden_states=bert_encoder_out, 
             encoder_attention_mask=bert_encoder_padding_mask, 
-            token_type_ids=token_type_ids_decoder,
             output_hidden_states=True
         )
         # print("Decoder out: ", decoder_out.shape)
