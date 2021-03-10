@@ -13,6 +13,7 @@ import collections
 import math
 import os
 import random
+from re import U
 
 import torch
 
@@ -47,6 +48,32 @@ def main(args, init_distributed=False):
 
     # Build model and criterion
     model = task.build_model(args)
+    finetune_whole_encoder = getattr(args, 'finetune_whole_encoder', False)
+    finetune_embeddings = getattr(args, 'finetune_embeddings', False)
+
+    # If not finetune whole model (first stage)
+    if not finetune_whole_encoder:
+        for name, param in model.encoder.named_parameters():
+            param.requires_grad = False
+            if 'embed_lengths' in name:
+                param.requires_grad = True
+        
+        for name, param in model.decoder.named_parameters():
+            param.requires_grad = False
+            if 'crossattention' in name:
+                param.requires_grad = True
+            if 'predictions' in name:
+                param.requires_grad = True
+    else:
+        for name, param in model.named_parameters():
+            if 'embeddings' in name:
+                param.requires_grad = False  
+
+    # Default to not finetune the embeddings but just in case..              
+    if finetune_embeddings:
+        for name, param in model.named_parameters():
+            if 'embeddings' in name:
+                param.requires_grad = True
 
     check_p = [n for n,p in model.named_parameters() if p.requires_grad]
     print("Trained parameters: {}".format(check_p))
