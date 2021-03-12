@@ -113,17 +113,17 @@ def main(args, init_distributed=False):
         # train for one epoch
         train(args, trainer, task, epoch_itr)
 
-        # if not args.disable_validation and epoch_itr.epoch % args.validate_interval == 0:
-        #     valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
-        # else:
-        #     valid_losses = [None]
+        if not args.disable_validation and epoch_itr.epoch % args.validate_interval == 0:
+            valid_losses = validate(args, trainer, task, epoch_itr, valid_subsets)
+        else:
+            valid_losses = [None]
 
         # only use first validation loss to update the learning rate
-        lr = trainer.lr_step(epoch_itr.epoch)
+        lr = trainer.lr_step(epoch_itr.epoch, valid_losses[0])
 
-        # # save checkpoint
-        # if epoch_itr.epoch % args.save_interval == 0:
-        #     checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
+        # save checkpoint
+        if epoch_itr.epoch % args.save_interval == 0:
+            checkpoint_utils.save_checkpoint(args, trainer, epoch_itr, valid_losses[0])
 
         if ':' in getattr(args, 'data', ''):
             # sharded data: get train iterator for next epoch
