@@ -70,6 +70,7 @@ class Trainer(object):
         self.meters['bsz'] = AverageMeter()    # sentences per batch
         self.meters['gnorm'] = AverageMeter()  # gradient norm
         self.meters['clip'] = AverageMeter()   # % of updates clipped
+        self.meters['grad_norm'] = AverageMeter()
         self.meters['oom'] = AverageMeter()    # out of memory
         if args.fp16:
             self.meters['loss_scale'] = AverageMeter()  # dynamic loss scale

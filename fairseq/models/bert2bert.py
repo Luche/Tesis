@@ -165,7 +165,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             # from_scratch=args.train_from_scratch, 
             is_encoder=True,
             is_at=args.is_at,
-            add_pooling_layer=False,
+            add_pooling_layer=True,
             )
         print('Load model\'s decoder...')
         bertdecoder = BertDec.from_pretrained(
