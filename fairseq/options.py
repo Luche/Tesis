@@ -464,6 +464,7 @@ def add_generation_args(parser):
     group.add_argument('--mask_pred_iter', default=2, type=int)
     group.add_argument('--change-ratio', action='store_true')
     group.add_argument('--decode_use_adapter', default=False, action='store_true')
+    group.add_argument('--use_amp', default=False, action='store_true')
     # fmt: on
     return group
 

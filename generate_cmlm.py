@@ -254,6 +254,7 @@ def predict_length_beam(gold_target_len, predicted_lengths, length_beam_size):
     else:
         beam = predicted_lengths.topk(length_beam_size, dim=1)[1]
     beam[beam < 2] = 2
+    beam[beam > 40] = 40
     return beam
 
 

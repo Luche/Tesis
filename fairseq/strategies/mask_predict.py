@@ -40,7 +40,7 @@ class MaskPredict(DecodingStrategy):
 
             print("Step: ", counter+1)
             print("Masking: ", convert_tokens(tgt_dict, tgt_tokens[0]))
-            decoder_out = list(model.decoder(input_ids=tgt_tokens, encoder_hidden_states=encoder_out['encoder_out'], output_hidden_states=True))
+            decoder_out = model.decoder(input_ids=tgt_tokens, encoder_hidden_states=encoder_out['encoder_out'], output_hidden_states=True)
             new_tgt_tokens, new_token_probs, all_token_probs = generate_step_with_prob(decoder_out)
             
             assign_multi_value_long(token_probs, mask_ind, new_token_probs)
@@ -54,7 +54,7 @@ class MaskPredict(DecodingStrategy):
         return tgt_tokens, lprobs
     
     def generate_non_autoregressive(self, model, encoder_out, tgt_tokens):
-        decoder_out = list(model.decoder(input_ids=tgt_tokens, encoder_hidden_states=encoder_out['encoder_out'], output_hidden_states=True))
+        decoder_out = model.decoder(input_ids=tgt_tokens, encoder_hidden_states=encoder_out['encoder_out'], output_hidden_states=True)
         tgt_tokens, token_probs, _ = generate_step_with_prob(decoder_out)
         return tgt_tokens, token_probs
 

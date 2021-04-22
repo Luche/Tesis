@@ -1367,7 +1367,7 @@ class BertModel(BertPreTrainedModel):
         elif self.is_encoder and self.is_at:
             return sequence_output, pooled_output, 0
 
-        return sequence_output, pooled_output, 0
+        return sequence_output, pooled_output
 
 def Linear(in_features, out_features, bias=True):
     m = nn.Linear(in_features, out_features, bias)

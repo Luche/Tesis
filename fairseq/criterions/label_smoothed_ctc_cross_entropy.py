@@ -12,8 +12,8 @@ from fairseq import utils
 from . import FairseqCriterion, register_criterion
 
 
-@register_criterion('label_smoothed_cross_entropy')
-class LabelSmoothedCrossEntropyCriterion(FairseqCriterion):
+@register_criterion('label_smoothed_cross_entropy_ctc')
+class LabelSmoothedCrossEntropyCTCCriterion(FairseqCriterion):
 
     def __init__(self, args, task):
         super().__init__(args, task)
