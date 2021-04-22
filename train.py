@@ -22,7 +22,6 @@ from fairseq.data import iterators
 from fairseq.trainer import Trainer
 from fairseq.meters import AverageMeter, StopwatchMeter
 
-
 def main(args, init_distributed=False):
     utils.import_user_module(args)
 
@@ -79,7 +78,7 @@ def main(args, init_distributed=False):
     print("Trained parameters: {}".format(check_p))
 
     criterion = task.build_criterion(args)
-    print(model)
+    # print(model)
     print('| model {}, criterion {}'.format(args.arch, criterion.__class__.__name__))
     print('| num. model params: {} (num. trained: {})'.format(
         sum(p.numel() for p in model.parameters()),

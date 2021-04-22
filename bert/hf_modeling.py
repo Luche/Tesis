@@ -1235,11 +1235,12 @@ class BertModel(BertPreTrainedModel):
 
         self.apply(self.init_bert_weights)
         self.is_at = config.is_at
+        self.ctc = config.ctc
         self.is_encoder = config.is_encoder
         self.is_decoder = config.is_decoder
 
         self.hidden_size = config.hidden_size
-        if self.is_encoder and not self.is_at:
+        if self.is_encoder and not self.is_at and not self.ctc:
             self.embed_lengths = nn.Embedding(1024, self.hidden_size)
             nn.init.normal_(self.embed_lengths.weight, mean=0, std=0.02)
 
@@ -1277,7 +1278,7 @@ class BertModel(BertPreTrainedModel):
         embedding_output = self.embeddings(input_ids, token_type_ids, position_ids, past_key_values_length)
 
         # Add the LENGTH things
-        if self.is_encoder and not self.is_at:
+        if self.is_encoder and not self.is_at and not self.ctc:
             len_tokens = self.embed_lengths(input_ids.new(input_ids.size(0), 1).fill_(0))
             embedding_output = torch.cat([len_tokens, embedding_output], dim=1)
             attention_mask = torch.cat([attention_mask.new(input_ids.size(0), 1).fill_(1), attention_mask], dim=1)
@@ -1357,7 +1358,7 @@ class BertModel(BertPreTrainedModel):
         sequence_output = encoder_outputs[0]
         pooled_output = self.pooler(sequence_output) if self.pooler is not None else None
 
-        if self.is_encoder and not self.is_at:
+        if self.is_encoder and not self.is_at and not self.ctc:
             predicted_lengths_logits = torch.matmul(sequence_output[:, 0, :], self.embed_lengths.weight.transpose(0, 1)).float()
             predicted_lengths_logits[:, 0] += float('-inf')   # Cannot predict the len_token
             predicted_lengths = F.log_softmax(predicted_lengths_logits, dim=-1)
@@ -1366,7 +1367,7 @@ class BertModel(BertPreTrainedModel):
         elif self.is_encoder and self.is_at:
             return sequence_output, pooled_output, 0
 
-        return sequence_output, pooled_output
+        return sequence_output, pooled_output, 0
 
 def Linear(in_features, out_features, bias=True):
     m = nn.Linear(in_features, out_features, bias)

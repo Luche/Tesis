@@ -198,6 +198,7 @@ class PretrainedConfig(object):
         self.is_decoder = kwargs.pop("is_decoder", False)
         self.is_encoder = kwargs.pop("is_encoder", False)
         self.is_at = kwargs.pop("is_at", False)
+        self.ctc = kwargs.pop("ctc", False)
         self.add_cross_attention = kwargs.pop("add_cross_attention", False)
         self.tie_encoder_decoder = kwargs.pop("tie_encoder_decoder", False)
 

@@ -328,6 +328,8 @@ def add_optimization_args(parser):
                         help="specify global optimizer for syncing models on different GPUs/Shards")
     group.add_argument('--global-sync-iter', default=10, type=int,
                         help='Iteration for syncing global model')
+    group.add_argument('--use-amp', default=False, action='store_true',
+                        help="Automatic Mixed Precision")
     # fmt: on
     return group
 

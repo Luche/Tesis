@@ -10,7 +10,6 @@ import torch
 from fairseq import tokenizer
 from fairseq.data import data_utils, FairseqDataset, iterators, Dictionary
 
-
 class FairseqTask(object):
     """
     Tasks store dictionaries and provide helpers for loading/iterating over
@@ -208,7 +207,7 @@ class FairseqTask(object):
                 args=args,
             )
 
-    def train_step(self, sample, model, criterion, optimizer, ignore_grad=False):
+    def train_step(self, sample, model, criterion, optimizer, ignore_grad=False, scaler=None):
         """
         Do forward and backward, and return the loss as computed by *criterion*
         for the given *model* and *sample*.
@@ -229,20 +228,30 @@ class FairseqTask(object):
                 - logging outputs to display while training
         """
         model.train()
-        loss, sample_size, logging_output = criterion(model, sample)
+        use_amp = True if scaler is not None else False
+        with torch.cuda.amp.autocast(enabled=use_amp):
+            loss, sample_size, logging_output = criterion(model, sample)
         
         #input()
         if ignore_grad:
             loss *= 0
-        optimizer.backward(loss)
+        
+        # CTC here
+        if use_amp:
+            optimizer.backward(scaler.scale(loss))
+        else:
+            optimizer.backward(loss)
+        # loss.backward()
         # for name, param in model.named_parameters(): 
         #     print(name, param, True if param.grad is not None else False)
         return loss, sample_size, logging_output
 
-    def valid_step(self, sample, model, criterion):
+    def valid_step(self, sample, model, criterion, scaler):
         model.eval()
+        use_amp = True if scaler is not None else False
         with torch.no_grad():
-            loss, sample_size, logging_output = criterion(model, sample)
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                loss, sample_size, logging_output = criterion(model, sample)
         return loss, sample_size, logging_output
 
     def inference_step(self, generator, models, sample, prefix_tokens=None):

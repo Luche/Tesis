@@ -103,7 +103,8 @@ def main(args):
     with progress_bar.build_progress_bar(args, itr) as t:
 
         gen_timer = TimeMeter()
-        translations = generate_batched_itr(t, strategy, models, tgt_dict, length_beam_size=args.length_beam, use_gold_target_len=args.gold_target_len, cuda=use_cuda)
+        with torch.cuda.amp.autocast(enabled=args.use_amp):
+            translations = generate_batched_itr(t, strategy, models, tgt_dict, length_beam_size=args.length_beam, use_gold_target_len=args.gold_target_len, cuda=use_cuda)
         # print('Generation time = {}'.format(gen_timer.elapsed_time))
 
         for sample_id, src_tokens, target_tokens, hypos in translations:
@@ -210,7 +211,6 @@ def generate_batched_itr(data_itr, strategy, models, tgt_dict, length_beam_size=
 def generate(strategy, encoder_input, models, tgt_dict, length_beam_size, gold_target_len):
     assert len(models) == 1
     model = models[0]
-    
     src_tokens = encoder_input['src_tokens']
     src_tokens = src_tokens.new(src_tokens.tolist())
     bsz = src_tokens.size(0)

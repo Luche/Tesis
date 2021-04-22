@@ -262,7 +262,7 @@ def convert_state_dict_type(state_dict, ttype=torch.FloatTensor):
 
 
 def save_state(
-    filename, args, model_state_dict, criterion, optimizer, lr_scheduler,
+    filename, args, model_state_dict, criterion, optimizer, scaler, lr_scheduler,
     num_updates, optim_history=None, extra_state=None,
 ):
     if optim_history is None:
@@ -281,6 +281,7 @@ def save_state(
             }
         ],
         'last_optimizer_state': convert_state_dict_type(optimizer.state_dict()),
+        'scaler': scaler.state_dict() if scaler else {},
         'extra_state': extra_state,
     }
     torch_persistent_save(state_dict, filename)

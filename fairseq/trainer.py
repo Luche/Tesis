@@ -53,8 +53,10 @@ class Trainer(object):
         self._num_updates = 0
         self._optim_history = None
         self._optimizer = None
+        self._scaler = None
         self._prev_grad_norm = None
         self._wrapped_model = None
+        self.use_amp = args.use_amp
 
         self.init_meters(args)
 
@@ -95,6 +97,12 @@ class Trainer(object):
         return self._optimizer
 
     @property
+    def scaler(self):
+        if self._scaler is None:
+            self._build_scaler()
+        return self._scaler
+
+    @property
     def lr_scheduler(self):
         if self._lr_scheduler is None:
             self._build_optimizer()  # this will initialize self._lr_scheduler
@@ -123,13 +131,16 @@ class Trainer(object):
         self._lr_scheduler = lr_scheduler.build_lr_scheduler(self.args, self.optimizer)
         self._lr_scheduler.step_update(0)
 
+    def _build_scaler(self):
+        self._scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
+
     def save_checkpoint(self, filename, extra_state):
         """Save all training state in a checkpoint file."""
         if distributed_utils.is_master(self.args):  # only save one checkpoint
             extra_state['train_meters'] = self.meters
             checkpoint_utils.save_state(
                 filename, self.args, self.get_model().state_dict(), self.criterion,
-                self.optimizer, self.lr_scheduler, self.get_num_updates(),
+                self.optimizer, self.scaler, self.lr_scheduler, self.get_num_updates(),
                 self._optim_history, extra_state,
             )
 
@@ -172,6 +183,9 @@ class Trainer(object):
             extra_state = state['extra_state']
             self._optim_history = state['optimizer_history']
             last_optim_state = state['last_optimizer_state']
+            
+            self._build_scaler()
+            self.scaler.load_state_dict(state['scaler'])
 
         if last_optim_state is not None and not reset_optimizer:
             # rebuild optimizer after loading model, since params may have changed
@@ -277,7 +291,7 @@ class Trainer(object):
                 # forward and backward
                 loss, sample_size, logging_output = self.task.train_step(
                     sample, self.model, self.criterion, self.optimizer,
-                    ignore_grad
+                    ignore_grad, self.scaler
                 )
 
                 if not ignore_grad:
@@ -349,6 +363,9 @@ class Trainer(object):
             ).format(self.task.__class__.__name__))
 
         try:
+            if self._scaler is not None:
+                self.scaler.unscale_(self.optimizer)
+
             # normalize grads by sample size
             if sample_size > 0:
                 self.optimizer.multiply_grads(self.args.distributed_world_size / float(sample_size))
@@ -357,8 +374,15 @@ class Trainer(object):
             grad_norm = self.optimizer.clip_grad_norm(self.args.clip_norm)
             self._prev_grad_norm = grad_norm
 
-            # take an optimization step
-            self.optimizer.step()
+            if self._scaler is not None:
+                # take an optimization step
+                self.scaler.step(self.optimizer)
+
+                # Updates the scale for next iteration.
+                self.scaler.update()
+            else:
+                self.optimizer.step()
+
             self.set_num_updates(self.get_num_updates() + 1)
 
             # task specific update per step
@@ -410,7 +434,7 @@ class Trainer(object):
 
             try:
                 _loss, sample_size, logging_output = self.task.valid_step(
-                    sample, self.model, self.criterion
+                    sample, self.model, self.criterion, self.scaler
                 )
             except RuntimeError as e:
                 if 'out of memory' in str(e) and not raise_oom:

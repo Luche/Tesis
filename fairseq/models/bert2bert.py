@@ -133,6 +133,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
         parser.add_argument('--train-from-scratch', default=False, action='store_true')
         parser.add_argument('--no-noisy-source', default=False, action='store_true')
         parser.add_argument('--is-at', default=False, action='store_true')
+        parser.add_argument('--ctc', default=False, action='store_true')
         # fmt: on
 
     @classmethod
@@ -165,6 +166,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             # from_scratch=args.train_from_scratch, 
             is_encoder=True,
             is_at=args.is_at,
+            ctc=args.ctc,
             add_pooling_layer=True,
             )
         print('Load model\'s decoder...')
@@ -174,6 +176,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             add_cross_attention=True, 
             is_decoder=True, 
             is_at=args.is_at,
+            ctc=args.ctc,
             )
 
         return cls(bertencoder, bertdecoder, src_berttokenizer, tgt_berttokenizer, args)
@@ -252,6 +255,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             )
         # bert_encoder_out = bert_encoder_out.permute(1,0,2).contiguous()
         # print("Encoder out: ", bert_encoder_out.shape)
+        # print("Encoder out: ", bert_encoder_out)
 
         # encoder_out = {
         #     'encoder_out': bert_encoder_out,

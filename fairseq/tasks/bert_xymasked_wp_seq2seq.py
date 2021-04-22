@@ -268,7 +268,7 @@ class BertXYMassWordpieceTranslationTask(FairseqTask):
     def target_dictionary(self):
         """Return the target :class:`~fairseq.data.Dictionary`."""
         return self.tgt_dict
-
+    
     def inference_step(self, generator, models, sample, prefix_tokens=None, tgt_bert_encoder=None, tgt_bert_tokenizer=None):
         with torch.no_grad():
             return generator.generate(models, sample, prefix_tokens=prefix_tokens, tgt_bert_encoder=tgt_bert_encoder, tgt_bert_tokenizer=tgt_bert_tokenizer)
