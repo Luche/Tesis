@@ -96,11 +96,11 @@ class Trainer(object):
             self._build_optimizer()
         return self._optimizer
 
-    # @property
-    # def scaler(self):
-    #     if self._scaler is None:
-    #         self._build_scaler()
-    #     return self._scaler
+    @property
+    def scaler(self):
+        if self._scaler is None:
+            self._build_scaler()
+        return self._scaler
 
     @property
     def lr_scheduler(self):
@@ -131,8 +131,9 @@ class Trainer(object):
         self._lr_scheduler = lr_scheduler.build_lr_scheduler(self.args, self.optimizer)
         self._lr_scheduler.step_update(0)
 
-    # def _build_scaler(self):
-    #     self._scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
+    def _build_scaler(self):
+        if self.use_amp:
+            self._scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
 
     def save_checkpoint(self, filename, extra_state):
         """Save all training state in a checkpoint file."""
