@@ -228,19 +228,19 @@ class FairseqTask(object):
                 - logging outputs to display while training
         """
         model.train()
-        use_amp = True if scaler is not None else False
-        with torch.cuda.amp.autocast(enabled=use_amp):
-            loss, sample_size, logging_output = criterion(model, sample)
+        # use_amp = True if scaler is not None else False
+        # with torch.cuda.amp.autocast(enabled=use_amp):
+        loss, sample_size, logging_output = criterion(model, sample)
         
         #input()
         if ignore_grad:
             loss *= 0
         
         # CTC here
-        if use_amp:
-            optimizer.backward(scaler.scale(loss))
-        else:
-            optimizer.backward(loss)
+        # if use_amp:
+        #     optimizer.backward(scaler.scale(loss))
+        # else:
+        optimizer.backward(loss)
         # loss.backward()
         # for name, param in model.named_parameters(): 
         #     print(name, param, True if param.grad is not None else False)
@@ -248,10 +248,10 @@ class FairseqTask(object):
 
     def valid_step(self, sample, model, criterion, scaler):
         model.eval()
-        use_amp = True if scaler is not None else False
+        # use_amp = True if scaler is not None else False
         with torch.no_grad():
-            with torch.cuda.amp.autocast(enabled=use_amp):
-                loss, sample_size, logging_output = criterion(model, sample)
+            # with torch.cuda.amp.autocast(enabled=use_amp):
+            loss, sample_size, logging_output = criterion(model, sample)
         return loss, sample_size, logging_output
 
     def inference_step(self, generator, models, sample, prefix_tokens=None):

@@ -281,7 +281,7 @@ def save_state(
             }
         ],
         'last_optimizer_state': convert_state_dict_type(optimizer.state_dict()),
-        'scaler': scaler.state_dict() if scaler else {},
+        # 'scaler': scaler.state_dict() if scaler else {},
         'extra_state': extra_state,
     }
     torch_persistent_save(state_dict, filename)
