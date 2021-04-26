@@ -61,6 +61,17 @@ def main(args):
         encoder_ratio=args.encoder_ratio if args.change_ratio else None,
         geargs=args,
     )
+
+    if args.aver:
+        print("\nAveraging the models...")
+        for key in models[0]:
+            for i in range(len(models)-1):
+                models[0][key] = models[0][key] + models[i+1][key]
+            models[0][key] = models[0][key] / float(len(models))
+        models[0].load_state_dict(models[0])
+        del models[1:]
+        print("Models are averaged.")
+    
     if use_cuda:
         models = [model.cuda() for model in models]
 
