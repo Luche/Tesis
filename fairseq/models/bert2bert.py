@@ -247,6 +247,8 @@ class Bert2Bert(FairseqEncoderDecoderModel):
 
         # print("SRC Tokens: \n", src_tokens[0][:100])
         # print("Type IDS: \n", token_type_ids)
+        # print("Attention mask: ", 1-bert_encoder_padding_mask.float())
+        # print("Encoder attention mask: ", bert_encoder_padding_mask)
         bert_encoder_out, _, predicted_lengths = self.encoder(
             input_ids=src_tokens, 
             token_type_ids=token_type_ids, 
@@ -274,7 +276,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
             input_ids=prev_output_tokens,
             token_type_ids=token_type_ids_decoder, 
             encoder_hidden_states=bert_encoder_out, 
-            encoder_attention_mask=bert_encoder_padding_mask, 
+            encoder_attention_mask=1-bert_encoder_padding_mask.float(), 
             output_hidden_states=True
         )
         # print("Decoder out: ", decoder_out.shape)

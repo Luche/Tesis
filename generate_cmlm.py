@@ -64,11 +64,13 @@ def main(args):
 
     if args.aver:
         print("\nAveraging the models...")
-        for key in models[0]:
+        model_aver = {}
+        model_aver = models[0].state_dict()
+        for key in models[0].state_dict():
             for i in range(len(models)-1):
-                models[0][key] = models[0][key] + models[i+1][key]
-            models[0][key] = models[0][key] / float(len(models))
-        models[0].load_state_dict(models[0])
+                model_aver[key] = model_aver[key] + models[i+1].state_dict()[key]
+            model_aver[key] = model_aver[key] / float(len(models))
+        models[0].load_state_dict(model_aver)
         del models[1:]
         print("Models are averaged.")
     
@@ -114,8 +116,12 @@ def main(args):
     with progress_bar.build_progress_bar(args, itr) as t:
 
         gen_timer = TimeMeter()
-        # with torch.cuda.amp.autocast(enabled=args.use_amp):
-        translations = generate_batched_itr(t, strategy, models, tgt_dict, length_beam_size=args.length_beam, use_gold_target_len=args.gold_target_len, cuda=use_cuda)
+        if args.use_amp:
+            with torch.cuda.amp.autocast():
+                translations = generate_batched_itr(t, strategy, models, tgt_dict, length_beam_size=args.length_beam, use_gold_target_len=args.gold_target_len, cuda=use_cuda)
+        else:
+            translations = generate_batched_itr(t, strategy, models, tgt_dict, length_beam_size=args.length_beam, use_gold_target_len=args.gold_target_len, cuda=use_cuda)
+
         # print('Generation time = {}'.format(gen_timer.elapsed_time))
 
         for sample_id, src_tokens, target_tokens, hypos in translations:

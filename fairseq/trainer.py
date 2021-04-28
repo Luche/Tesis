@@ -133,7 +133,7 @@ class Trainer(object):
 
     def _build_scaler(self):
         if self.use_amp:
-            self._scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
+            self._scaler = torch.cuda.amp.GradScaler()
 
     def save_checkpoint(self, filename, extra_state):
         """Save all training state in a checkpoint file."""
@@ -185,8 +185,8 @@ class Trainer(object):
             self._optim_history = state['optimizer_history']
             last_optim_state = state['last_optimizer_state']
             
-            # self._build_scaler()
-            # self.scaler.load_state_dict(state['scaler'])
+            self._build_scaler()
+            self.scaler.load_state_dict(state['scaler'])
 
         if last_optim_state is not None and not reset_optimizer:
             # rebuild optimizer after loading model, since params may have changed
@@ -364,8 +364,8 @@ class Trainer(object):
             ).format(self.task.__class__.__name__))
 
         try:
-            # if self._scaler is not None:
-            #     self.scaler.unscale_(self.optimizer)
+            if self._scaler is not None:
+                self.scaler.unscale_(self.optimizer)
 
             # normalize grads by sample size
             if sample_size > 0:
@@ -375,14 +375,14 @@ class Trainer(object):
             grad_norm = self.optimizer.clip_grad_norm(self.args.clip_norm)
             self._prev_grad_norm = grad_norm
 
-            # if self._scaler is not None:
-            #     # take an optimization step
-            #     self.scaler.step(self.optimizer)
+            if self._scaler is not None:
+                # take an optimization step
+                self.scaler.step(self.optimizer)
 
-            #     # Updates the scale for next iteration.
-            #     self.scaler.update()
-            # else:
-            self.optimizer.step()
+                # Updates the scale for next iteration.
+                self.scaler.update()
+            else:
+                self.optimizer.step()
 
             self.set_num_updates(self.get_num_updates() + 1)
 

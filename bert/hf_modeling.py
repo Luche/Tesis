@@ -522,7 +522,7 @@ class BertSelfAttention(nn.Module):
         if attention_mask is not None:
             # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
             attention_scores = attention_scores + attention_mask
-        
+        # print("Attention scores: ", attention_scores)
         # Normalize the attention scores to probabilities.
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
 
@@ -711,9 +711,10 @@ class BertEncoder(nn.Module):
         encoder_attention_mask=None,
         past_key_values=None,
         output_hidden_states=False,
+        use_cache=False,
     ):
-        all_hidden_states = ()
-
+        all_hidden_states = () if output_hidden_states else None
+        next_decoder_cache = () if use_cache else None
         for i, layer_module in enumerate(self.layer):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
@@ -729,6 +730,9 @@ class BertEncoder(nn.Module):
             )
             
             hidden_states = layer_outputs[0]
+
+            if use_cache:
+                next_decoder_cache += (layer_outputs[-1],)
         
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
@@ -737,6 +741,7 @@ class BertEncoder(nn.Module):
                 v
                 for v in [
                     hidden_states,
+                    next_decoder_cache,
                     all_hidden_states,
                 ]
                 if v is not None
@@ -787,10 +792,12 @@ class BertLMPredictionHead(nn.Module):
                                  bias=False)
         self.decoder.weight = bert_model_embedding_weights
         self.bias = nn.Parameter(torch.zeros(bert_model_embedding_weights.size(0)))
-        
+        # Need a link between the two variables so that the bias is correctly resized with `resize_token_embeddings`
+        self.decoder.bias = self.bias
+
     def forward(self, hidden_states):
         hidden_states = self.transform(hidden_states)
-        hidden_states = self.decoder(hidden_states) + self.bias
+        hidden_states = self.decoder(hidden_states)
         return hidden_states
 
 
@@ -1254,11 +1261,17 @@ class BertModel(BertPreTrainedModel):
         encoder_hidden_states=None,
         encoder_attention_mask=None,
         past_key_values=None,
+        use_cache=None,
         output_hidden_states=None,
     ):
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
+
+        if self.is_decoder:
+            use_cache = use_cache if use_cache is not None else False
+        else:
+            use_cache = False
 
         input_shape = input_ids.size()
         batch_size, seq_length = input_shape
@@ -1321,7 +1334,7 @@ class BertModel(BertPreTrainedModel):
         extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype) # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
 
-        if self.config.is_decoder and encoder_hidden_states is not None:
+        if self.is_decoder and encoder_hidden_states is not None:
             encoder_batch_size, encoder_sequence_length, _ = encoder_hidden_states.size()
             encoder_hidden_shape = (encoder_batch_size, encoder_sequence_length)
             if encoder_attention_mask is None:
@@ -1339,6 +1352,8 @@ class BertModel(BertPreTrainedModel):
             
         else:
             encoder_extended_attention_mask = None
+
+        # print("Encoder attention mask extended: ", encoder_extended_attention_mask)
 
         # if encoder_hidden_states is not None:
             # embedding_output = embedding_output.transpose(0, 1)
