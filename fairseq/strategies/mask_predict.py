@@ -28,7 +28,7 @@ class MaskPredict(DecodingStrategy):
         tgt_tokens, token_probs = self.generate_non_autoregressive(model, encoder_out, tgt_tokens)
         assign_single_value_byte(tgt_tokens, pad_mask, tgt_dict.pad())
         assign_single_value_byte(token_probs, pad_mask, 1.0)
-        print("\nInitialization: ", convert_tokens(tgt_dict, tgt_tokens[0]))
+        # print("\nInitialization: ", convert_tokens(tgt_dict, tgt_tokens[0]))
         
         for counter in range(1, iterations):
             num_mask = (seq_lens.float() * (1.0 - (counter / iterations))).long()
@@ -38,8 +38,8 @@ class MaskPredict(DecodingStrategy):
             assign_single_value_long(tgt_tokens, mask_ind, tgt_dict.mask())
             assign_single_value_byte(tgt_tokens, pad_mask, tgt_dict.pad())
 
-            print("Step: ", counter+1)
-            print("Masking: ", convert_tokens(tgt_dict, tgt_tokens[0]))
+            # print("Step: ", counter+1)
+            # print("Masking: ", convert_tokens(tgt_dict, tgt_tokens[0]))
             decoder_out = model.decoder(input_ids=tgt_tokens, encoder_hidden_states=encoder_out['encoder_out'], output_hidden_states=True)
             new_tgt_tokens, new_token_probs, all_token_probs = generate_step_with_prob(decoder_out)
             
@@ -48,7 +48,7 @@ class MaskPredict(DecodingStrategy):
             
             assign_multi_value_long(tgt_tokens, mask_ind, new_tgt_tokens)
             assign_single_value_byte(tgt_tokens, pad_mask, tgt_dict.pad())
-            print("Prediction: ", convert_tokens(tgt_dict, tgt_tokens[0]))
+            # print("Prediction: ", convert_tokens(tgt_dict, tgt_tokens[0]))
         
         lprobs = token_probs.log().sum(-1)
         return tgt_tokens, lprobs

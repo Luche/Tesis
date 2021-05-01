@@ -130,6 +130,7 @@ class Bert2Bert(FairseqEncoderDecoderModel):
         parser.add_argument('--adapter-dimension', default=2048, type=int)
         parser.add_argument('--finetune-embeddings', default=False, action='store_true')
         parser.add_argument('--finetune-whole-encoder', default=False, action='store_true')
+        parser.add_argument('--finetune-decoder', default=False, action='store_true')
         parser.add_argument('--train-from-scratch', default=False, action='store_true')
         parser.add_argument('--no-noisy-source', default=False, action='store_true')
         parser.add_argument('--is-at', default=False, action='store_true')

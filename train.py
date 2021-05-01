@@ -49,6 +49,7 @@ def main(args, init_distributed=False):
     model = task.build_model(args)
     finetune_whole_encoder = getattr(args, 'finetune_whole_encoder', False)
     finetune_embeddings = getattr(args, 'finetune_embeddings', False)
+    finetune_decoder = getattr(args, 'finetune_decoder', False)
 
     # If not finetune whole model (first stage)
     if not finetune_whole_encoder:
@@ -63,6 +64,9 @@ def main(args, init_distributed=False):
                 param.requires_grad = True
             if 'predictions' in name:
                 param.requires_grad = True
+    elif finetune_decoder:
+        for name, param in model.decoder.named_parameters():
+            param.requires_grad = True
     else:
         for name, param in model.named_parameters():
             if 'embeddings' in name:

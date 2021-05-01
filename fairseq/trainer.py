@@ -186,7 +186,8 @@ class Trainer(object):
             last_optim_state = state['last_optimizer_state']
             
             self._build_scaler()
-            self.scaler.load_state_dict(state['scaler'])
+            if self.scaler is not None:
+                self.scaler.load_state_dict(state['scaler'])
 
         if last_optim_state is not None and not reset_optimizer:
             # rebuild optimizer after loading model, since params may have changed

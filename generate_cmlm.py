@@ -237,7 +237,7 @@ def generate(strategy, encoder_input, models, tgt_dict, length_beam_size, gold_t
     bert_encoder_out, _, predicted_lengths = model.encoder(input_ids=src_tokens, output_hidden_states=True)
     encoder_out = {
             'encoder_out': bert_encoder_out,
-            'encoder_padding_mask': bert_encoder_padding_mask,
+            'encoder_padding_mask': 1-bert_encoder_padding_mask.float(),
             'predicted_lengths': predicted_lengths,
     }
     beam = predict_length_beam(gold_target_len, encoder_out['predicted_lengths'], length_beam_size)
