@@ -1,58 +1,62 @@
-# from statistics import mean
-from bert_score import score
-# from rouge_score import rouge_scorer
+import glob
+import nltk
+import numpy as np
 from datasets import load_metric
+from bert_score import score
 
-# Load data 
-print("Load data")
-ref = []
-with open('ref.txt', 'r') as f:
-  for line in f.readlines():
-    ref.append(line.strip())
-
-out = []
-with open('out.txt', 'r') as f:
-  for line in f.readlines():
-    out.append(line.strip())
-
-print("Calculate ROUGE")
-# scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL', 'rougeLsum'])
-# total_scores = {'r1':[], 'r2':[], 'rl':[], 'rlsum':[]}
-
-# for i in range(len(ref)):
-#     scores = scorer.score(ref[i], out[i])
-#     r1 = scores['rouge1'][2]
-#     r2 = scores['rouge2'][2]
-#     rl = scores['rougeL'][2]
-#     rlsum = scores['rougeLsum'][2]
-
-#     total_scores['r1'].append(r1)
-#     total_scores['r2'].append(r2)
-#     total_scores['rl'].append(rl)
-#     total_scores['rlsum'].append(rlsum)
-
-# r1=mean(total_scores['r1'])
-# r2=mean(total_scores['r2'])
-# rl=mean(total_scores['rl'])
-# rlsum=mean(total_scores['rlsum'])
-
+nltk.download('punkt')
 metric = load_metric("rouge")
-rouge = metric.compute(predictions=out, references=ref)
-r1 = rouge['rouge1'].mid
-r2 = rouge['rouge2'].mid
-rl = rouge['rougeL'].mid
-rlsum = rouge['rougeLsum'].mid
 
-print("ROUGE F1")
-print("R1: ", r1.fmeasure)
-print("R2: ", r2.fmeasure)
-print("RL: ", rl.fmeasure)
-print("RLsum: ", rlsum.fmeasure)
+def load_data(path=""):
+    # path = "/content/drive/MyDrive/Colab Notebooks/Tesis"
 
-print()
+    can_path = path + "ref.txt"
+    ref_path = path + "out.txt"
+    src_path = path + "src.txt"
 
-P, R, F1 = score(out, ref, model_type="bert-base-multilingual-cased", verbose=True)
-print("BERTScore")
-print(f"System level F1 score: {F1.mean():.4f}")
-print(f"System level Precision score: {P.mean():.4f}")
-print(f"System level Recall score: {R.mean():.4f}")
+    ref = []
+    can = []
+    src = []
+
+    with open(can_path, 'r') as f:
+      for line in f:
+        line = line.replace('\n', '')
+        can.append(line.strip())
+
+    with open(ref_path, 'r') as f:
+      for line in f:
+        line = line.replace('\n', '')
+        ref.append(line.strip())
+
+    with open(src_path, 'r') as f:
+      for line in f:
+        line = line.replace('\n', '')
+        src.append(line.strip())
+    return ref, can, src
+
+def compute_rouge(decoded_preds, decoded_labels):
+    # Rouge expects a newline after each sentence
+    decoded_preds = ["\n".join(nltk.sent_tokenize(pred.strip())) for pred in decoded_preds]
+    decoded_labels = ["\n".join(nltk.sent_tokenize(label.strip())) for label in decoded_labels]
+    
+    result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+    # Extract a few results
+    result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
+    
+    return {k: round(v, 4) for k, v in result.items()}
+  
+def compute_metrics():
+    ref, can, src = load_data()
+    
+    print("Compute BERTScore...")
+    P, R, F1 = score(can, ref, model_type="bert-base-multilingual-cased", verbose=True)
+    print(f"System level F1 score: {F1.mean():.4f}")
+    print(f"System level Precision score: {P.mean():.4f}")
+    print(f"System level Recall score: {R.mean():.4f}")
+
+    print("Compute ROUGE...")
+    result = compute_rouge(can, ref)
+
+    print(result)
+
+compute_metrics()

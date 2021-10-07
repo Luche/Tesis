@@ -69,33 +69,6 @@ def save_checkpoint(args, trainer, epoch_itr, val_loss, warmup_from_nmt=False):
         print('\n| saved checkpoint {} (epoch {} @ {} updates) (writing took {} seconds)'.format(
             checkpoints[0], epoch, updates, write_timer.sum))
 
-        # Only save & upload per 10k updates and best checkpoints
-        # Code to upload to GDrive here
-        if args.save_to_drive:
-            print('Uploading chechkpoints...')
-            from pydrive.drive import GoogleDrive 
-            from pydrive.auth import GoogleAuth 
-            gauth = GoogleAuth() 
-            
-            # Creates local webserver and auto 
-            # handles authentication. 
-            gauth.LoadCredentialsFile("mycreds.txt")
-            drive = GoogleDrive(gauth) 
-            
-            for cp in checkpoints:
-                # replace the value of this variable 
-                # with the absolute path of the directory 
-                path = os.path.abspath(cp)
-
-                checkpoint_folder = '1izR_l_BJbKrCaSeGN6gc7JTXGFXvQRCl'
-                f = drive.CreateFile({
-                    'title':'{}'.format(cp.split('/')[-1]), 
-                    'parents':[{'id': checkpoint_folder}]
-                    }) 
-                f.SetContentFile(path) 
-                f.Upload() 
-                f = None
-
     if not end_of_epoch and args.keep_interval_updates > 0:
         # remove old checkpoints; checkpoints are sorted in descending order
         checkpoints = checkpoint_paths(
